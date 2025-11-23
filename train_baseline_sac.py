@@ -5,73 +5,71 @@ import gymnasium as gym
 import pandas as pd
 from sac_utils import SACAgent, ReplayBuffer
 
-parser = argparse.ArgumentParser()
-parser.add_argument("--env", default="Hopper-v5", help="Gym environment name")
-parser.add_argument("--total_steps", type=int, default=200000, help="Total training steps")
-parser.add_argument("--save_at", type=str, default="50000,100000", help="Steps to save checkpoints, comma-separated")
-parser.add_argument("--seed", type=int, default=0, help="Random seed")
-parser.add_argument("--print_every", type=int, default=1, help="Print progress every N episodes")
-args = parser.parse_args()
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--env", type=str, default="Hopper-v4")
+    parser.add_argument("--total_steps", type=int, default=200000)
+    parser.add_argument("--save_at", type=str, default="50000,100000")
+    parser.add_argument("--seed", type=int, default=0)
+    parser.add_argument("--buffer_size", type=int, default=500000)
+    parser.add_argument("--batch_size", type=int, default=256)
+    parser.add_argument("--device", type=str, default="cpu")
+    args = parser.parse_args()
 
-env = gym.make(args.env)
-np.random.seed(args.seed)
-torch.manual_seed(args.seed)
-env.reset(seed=args.seed)
+    env = gym.make(args.env)
+    np.random.seed(args.seed)
+    torch.manual_seed(args.seed)
+    env.reset(seed=args.seed)
 
-obs_dim = env.observation_space.shape[0]
-act_dim = env.action_space.shape[0]
+    obs_dim = env.observation_space.shape[0]
+    # action can be Box (continuous)
+    act_dim = env.action_space.shape[0]
 
-agent = SACAgent(obs_dim, act_dim, device="cpu")
-buffer = ReplayBuffer(capacity=500000)
+    agent = SACAgent(obs_dim, act_dim, device=args.device)
+    buffer = ReplayBuffer(capacity=args.buffer_size)
 
-save_points = [int(x) for x in args.save_at.split(",")]
+    save_points = [int(x) for x in args.save_at.split(",") if x.strip()!='']
 
-episode_rewards = []
-obs, _ = env.reset()
-ep_reward = 0
-step = 0
-episode_count = 0
+    episode_rewards = []
+    obs, _ = env.reset(seed=args.seed)
+    ep_reward = 0
+    step = 0
 
-while step < args.total_steps:
-    # Convert observation to tensor
-    obs_tensor = torch.FloatTensor(obs).unsqueeze(0)
+    print(f"Starting training: env={args.env} seed={args.seed} buffer={args.buffer_size} batch={args.batch_size}")
 
-    # Sample action from actor (no gradients needed)
-    with torch.no_grad():
-        action = agent.actor.sample(obs_tensor)[0].cpu().numpy()[0]
+    while step < args.total_steps:
+        obs_tensor = torch.FloatTensor(obs).unsqueeze(0).to(args.device)
+        action_tensor, _ = agent.actor.sample(obs_tensor)
+        action = action_tensor[0].detach().cpu().numpy()
 
-    # Step environment
-    next_obs, reward, terminated, truncated, info = env.step(action)
-    done = terminated or truncated
+        next_obs, reward, terminated, truncated, _ = env.step(action)
+        done = bool(terminated or truncated)
 
-    # Store transition
-    buffer.push((obs, action, reward, next_obs, float(done)))
+        buffer.push((obs, action, float(reward), next_obs, float(done)))
 
-    # Update SAC agent
-    agent.update(buffer, batch_size=256)
+        # only update once buffer has some samples
+        agent.update(buffer, batch_size=args.batch_size)
 
-    # Move to next state
-    obs = next_obs
-    ep_reward += reward
-    step += 1
+        obs = next_obs
+        ep_reward += reward
+        step += 1
 
-    # End of episode
-    if done:
-        episode_rewards.append(ep_reward)
-        episode_count += 1
+        if done:
+            episode_rewards.append(ep_reward)
+            ep_reward = 0
+            obs, _ = env.reset()
 
-        if episode_count % args.print_every == 0:
-            print(f"Episode {episode_count} | Step {step} | Reward: {ep_reward}")
+        if step in save_points:
+            ckpt_name = f"checkpoint_{step}.pt"
+            torch.save(agent.actor.state_dict(), ckpt_name)
+            print(f"[step {step}] Saved checkpoint {ckpt_name}")
 
-        ep_reward = 0
-        obs, _ = env.reset()
+    # final save
+    final_name = f"checkpoint_final_{args.env}_seed{args.seed}_buf{args.buffer_size}_batch{args.batch_size}.pt"
+    torch.save(agent.actor.state_dict(), final_name)
+    reward_csv = f"baseline_rewards_{args.env}_seed{args.seed}_buf{args.buffer_size}_batch{args.batch_size}.csv"
+    pd.DataFrame({"episode_reward": episode_rewards}).to_csv(reward_csv, index=False)
+    print("Training complete. Saved:", final_name, reward_csv)
 
-    # Save checkpoints at specified steps
-    if step in save_points:
-        path = f"checkpoint_{step}.pt"
-        torch.save(agent.actor.state_dict(), path)
-        print(f"Saved checkpoint {path}")
-
-torch.save(agent.actor.state_dict(), "checkpoint_final.pt")
-pd.DataFrame({"episode_reward": episode_rewards}).to_csv("baseline_rewards.csv", index=False)
-print("Training complete. Final model saved as checkpoint_final.pt")
+if __name__ == "__main__":
+    main()

@@ -7,7 +7,6 @@ csv_files = {
     "SAC + 50k prefill": "rewards_50k.csv",
     "SAC + 100k prefill": "rewards_100k.csv",
     "SAC + prior full": "prior_rewards.csv",
-    # Uncomment if you have PPO rewards for the same env
     # "PPO": "ppo_rewards.csv"
 }
 

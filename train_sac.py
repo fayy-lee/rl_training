@@ -1,4 +1,3 @@
-# train_sac.py
 import gymnasium as gym
 import torch
 import numpy as np
@@ -7,18 +6,14 @@ from sac_utils import SACAgent, ReplayBuffer
 import random
 import argparse
 
-# ---------------------------
 # Parse arguments
-# ---------------------------
 parser = argparse.ArgumentParser()
 parser.add_argument("--env", type=str, default="Ant-v4", help="Environment name")
 parser.add_argument("--seed", type=int, default=0, help="Random seed")
 parser.add_argument("--prefill", type=str, default="A", help="Replay buffer type: A=random, B=50k_PPO, C=100k_PPO")
 args = parser.parse_args()
 
-# ---------------------------
 # Environment setup
-# ---------------------------
 env_name = args.env
 env = gym.make(env_name)
 obs_dim = env.observation_space.shape[0]
@@ -31,9 +26,7 @@ random.seed(seed)
 torch.manual_seed(seed)
 env.reset(seed=seed)
 
-# ---------------------------
 # Hyperparameters
-# ---------------------------
 buffer_size = 100000
 batch_size = 256
 learning_rate = 3e-4
@@ -43,15 +36,11 @@ learning_starts = 100  # Can set to 0 when prefilled
 gamma = 0.99
 tau = 0.005
 
-# ---------------------------
 # Initialize agent & buffer
-# ---------------------------
 agent = SACAgent(obs_dim, act_dim, device=device, lr=learning_rate, gamma=gamma, tau=tau)
-replay_buffer = ReplayBuffer(capacity=buffer_size)
+replay_buffer = ReplayBuffer(capacity=buffer_size) # add checkpoint to save the weight of the netwrork at 50k, save weights of final (100k)
 
-# ---------------------------
 # Add select_action method manually (works like .sample)
-# ---------------------------
 def select_action(agent, obs, eval_mode=False):
     obs_tensor = torch.FloatTensor(obs).unsqueeze(0).to(device)
     with torch.no_grad():
@@ -66,9 +55,7 @@ def select_action(agent, obs, eval_mode=False):
 
 agent.select_action = lambda obs, eval_mode=False: select_action(agent, obs, eval_mode)
 
-# ---------------------------
 # Prefill replay buffer
-# ---------------------------
 print("Prefilling buffer with random actions...")
 
 prefill_steps = {
@@ -88,9 +75,7 @@ for step in range(prefill_steps):
 
 print(f"Replay buffer prefilled with {len(replay_buffer)} transitions.")
 
-# ---------------------------
 # Main SAC training loop
-# ---------------------------
 returns = []
 episode_reward = 0
 obs, _ = env.reset()
@@ -117,9 +102,7 @@ for step in range(1, max_steps + 1):
         avg_return = np.mean(returns[-10:]) if len(returns) > 10 else np.mean(returns)
         print(f"Step: {step} | Avg Return (last 10): {avg_return:.2f}")
 
-# ---------------------------
 # Save learning curve
-# ---------------------------
 df = pd.DataFrame(returns, columns=["episode_reward"])
 csv_name = f"sac_learning_curve_{env_name}_{args.prefill}_seed{seed}.csv"
 df.to_csv(csv_name, index=False)
