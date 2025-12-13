@@ -26,7 +26,7 @@ This repository contains experiments using **Soft Actor-Critic (SAC)** and **pre
 - baseline_rewards_*.csv – Episode reward logs
 - checkpoint_final_*.pt – Saved model checkpoints
 - evaluation_results.csv – Checkpoint evaluation metrics
-- plots/ – Generated plots (PNG)
+- figures/ – Generated plots (PNG)
 
 ---
 
