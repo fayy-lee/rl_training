@@ -4,8 +4,8 @@ import numpy as np
 import glob
 import os
 
-ENV = "Hopper-v4"
-SEEDS = [0, 1, 2]   # consistent n = 3
+ENV = "Ant-v5"
+SEEDS = [0, 1, 2]  # adjust based on available files
 MAX_STEPS = 200_000
 
 def load_seed_curve(filepath):
@@ -52,28 +52,49 @@ def plot_comparison(configs, title, outfile):
     plt.savefig(outfile, dpi=300, bbox_inches="tight")
     plt.close()
 
-# Buffer size comparison
+# Example: Buffer size comparison for Ant-v5
 buffer_configs = {
-    "Buffer 50k": "baseline_rewards_Hopper-v4_seed{seed}_buf50000_batch64.csv",
-    "Buffer 300k": "baseline_rewards_Hopper-v4_seed{seed}_buf300000_batch256.csv",
-    "Buffer 500k": "baseline_rewards_Hopper-v4_seed{seed}_buf500000_batch256.csv",
+    "Buffer 500k": "baseline_rewards_Ant-v5_seed{seed}_buf500000_batch256.csv"
 }
 
 plot_comparison(
     buffer_configs,
-    "Hopper-v4: Buffer Size Comparison",
-    "hopper_buffer_comparison.png"
+    f"{ENV}: Buffer Size Comparison",
+    "ant_buffer_comparison.png"
 )
 
-# Batch size comparison
+# Example: Batch size comparison if needed
 batch_configs = {
-    "Batch 128": "baseline_rewards_Hopper-v4_seed{seed}_buf500000_batch128.csv",
-    "Batch 256": "baseline_rewards_Hopper-v4_seed{seed}_buf500000_batch256.csv",
-    "Batch 512": "baseline_rewards_Hopper-v4_seed{seed}_buf500000_batch512.csv",
+    "Batch 256": "baseline_rewards_Ant-v5_seed{seed}_buf500000_batch256.csv"
 }
 
 plot_comparison(
     batch_configs,
-    "Hopper-v4: Batch Size Comparison",
-    "hopper_batch_comparison.png"
+    f"{ENV}: Batch Size Comparison",
+    "ant_batch_comparison.png"
 )
+
+# Seed variation
+seed_files = [
+    f"baseline_rewards_Ant-v5_seed{s}_buf500000_batch256.csv"
+    for s in SEEDS
+    if os.path.exists(f"baseline_rewards_Ant-v5_seed{s}_buf500000_batch256.csv")
+]
+
+if seed_files:
+    plt.figure(figsize=(10, 6), dpi=300)
+    for fp in seed_files:
+        seed_num = int(fp.split("_seed")[1].split("_")[0])
+        df = pd.read_csv(fp)
+        steps = df["step"].values if "step" in df.columns else np.arange(len(df))
+        rewards = df.iloc[:, -1].values
+        mask = steps <= MAX_STEPS
+        plt.plot(steps[mask], rewards[mask], label=f"Seed {seed_num}")
+    plt.xlabel("Environment Steps", fontsize=12)
+    plt.ylabel("Reward", fontsize=12)
+    plt.title(f"{ENV}: Seed Variation (n={len(seed_files)})", fontsize=14)
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.savefig("ant_seed_variation.png", dpi=300, bbox_inches="tight")
+    plt.close()

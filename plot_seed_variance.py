@@ -1,62 +1,32 @@
-import glob
-import re
 import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
-from pathlib import Path
+import numpy as np
+import os
 
-plt.style.use('ggplot')
+ENV = "Hopper-v4"
+SEEDS = [0, 1, 2]  # consistent n = 3
+MAX_STEPS = 200_000
 
-# Load baseline CSVs
-base_glob = "baseline_rewards_*_seed*_buf*_batch*.csv"
-pattern = re.compile(
-    r"baseline_rewards_(?P<env>.+?)_seed(?P<seed>\d+)_buf(?P<buf>\d+)_batch(?P<batch>\d+)\.csv"
-)
+files = [
+    f"baseline_rewards_Hopper-v4_seed{s}_buf500000_batch256.csv"
+    for s in SEEDS
+    if os.path.exists(f"baseline_rewards_Hopper-v4_seed{s}_buf500000_batch256.csv")
+]
 
-files = sorted(glob.glob(base_glob))
-if not files:
-    print("No baseline_rewards CSVs found.")
-    raise SystemExit(1)
+plt.figure(figsize=(10, 6), dpi=300)
 
-data = {}
-for f in files:
-    m = pattern.search(Path(f).name)
-    if not m:
-        continue
-    env = m.group("env")
-    seed = int(m.group("seed"))
-    buf = int(m.group("buf"))
-    batch = int(m.group("batch"))
-    df = pd.read_csv(f)
-    rewards = df["episode_reward"].values
-    key = (env, buf, batch)
-    data.setdefault(key, {})[seed] = rewards
+for s, fp in zip(SEEDS, files):
+    df = pd.read_csv(fp)
+    steps = df["step"].values if "step" in df.columns else np.arange(len(df))
+    rewards = df.iloc[:, -1].values
+    mask = steps <= MAX_STEPS
+    plt.plot(steps[mask], rewards[mask], label=f"Seed {s}")
 
-def smooth(y, box=5):
-    return pd.Series(y).rolling(box, min_periods=1).mean().values
-
-# Combined seed variance plot
-plt.figure(figsize=(10,6))
-
-# Hopper seed variance (buffer 500k, batch 256)
-key = ("Hopper-v4", 500000, 256)
-if key in data:
-    seeds = data[key]
-    for seed, rewards in sorted(seeds.items()):
-        plt.plot(smooth(rewards, box=10), alpha=0.7, label=f"Hopper seed {seed}")
-
-# AntMaze seed variance (buffer 500k, batch 256)
-key = ("Ant-v5", 500000, 256)
-if key in data:
-    seeds = data[key]
-    for seed, rewards in sorted(seeds.items()):
-        plt.plot(smooth(rewards, box=10), alpha=0.7, linestyle="--", label=f"AntMaze seed {seed}")
-
-plt.title("Seed Variation – Hopper vs AntMaze (buffer 500k, batch 256)")
-plt.xlabel("Episode")
-plt.ylabel("Episode Reward")
+plt.xlabel("Environment Steps", fontsize=12)
+plt.ylabel("Reward", fontsize=12)
+plt.title(f"Hopper-v4: Seed Variation (n={len(files)})", fontsize=14)
 plt.legend()
+plt.grid(True)
 plt.tight_layout()
-plt.savefig("combined_seed_variance.png")
+plt.savefig("hopper_seed_variance.png", dpi=300, bbox_inches="tight")
 plt.close()
-print("Saved combined_seed_variance.png")
