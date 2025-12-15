@@ -70,7 +70,7 @@ Evaluate trained checkpoints across multiple seeds to compute mean and standard 
 
 ## Outputs
 
-**Plots (inside `plots/` folder):**
+**Plots (inside `figures/` folder):**
 
 - hopper_buffer_comparison.png
 - hopper_batch_comparison.png
