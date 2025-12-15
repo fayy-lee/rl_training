@@ -8,6 +8,8 @@ This repository contains experiments using **Soft Actor-Critic (SAC)** and **pre
 
 - Hopper-v4
 - Ant-v5
+- Walker2D
+- AntMaze
 - Optional: CartPole-v1 for demo or quick tests
 
 ---
