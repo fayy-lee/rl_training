@@ -1,79 +1,88 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
-import glob
 import os
 
 ENV = "Hopper-v4"
-SEEDS = [0, 1, 2]   # consistent n = 3
-MAX_STEPS = 200_000
+SEEDS = [0, 1, 2]
 
 def load_seed_curve(filepath):
     df = pd.read_csv(filepath)
-    if "step" in df.columns:
-        steps = df["step"].values
-    else:
-        steps = np.arange(len(df))
-    rewards = df.iloc[:, -1].values
-    return steps, rewards
+    rewards = df["episode_reward"].values
+    episodes = np.arange(len(rewards))
+    return episodes, rewards
 
 def aggregate_runs(filepaths):
     curves = []
     for fp in filepaths:
-        steps, rewards = load_seed_curve(fp)
-        mask = steps <= MAX_STEPS
-        curves.append(rewards[mask])
+        episodes, rewards = load_seed_curve(fp)
+        curves.append(rewards)
+
     min_len = min(len(c) for c in curves)
     curves = [c[:min_len] for c in curves]
+
     mean = np.mean(curves, axis=0)
     std = np.std(curves, axis=0)
-    steps = np.arange(min_len)
-    return steps, mean, std
+    episodes = np.arange(min_len)
+
+    return episodes, mean, std
 
 def plot_comparison(configs, title, outfile):
     plt.figure(figsize=(10, 6), dpi=300)
+
     for label, pattern in configs.items():
         files = []
         for s in SEEDS:
             fp = pattern.format(seed=s)
             if os.path.exists(fp):
                 files.append(fp)
+
         if not files:
             continue
-        steps, mean, std = aggregate_runs(files)
-        plt.plot(steps, mean, label=f"{label} (n={len(files)})")
-        plt.fill_between(steps, mean - std, mean + std, alpha=0.2)
-    plt.xlabel("Environment Steps", fontsize=12)
-    plt.ylabel("Average Reward", fontsize=12)
-    plt.title(title, fontsize=14)
+
+        episodes, mean, std = aggregate_runs(files)
+        plt.plot(episodes, mean, label=f"{label} (n={len(files)})")
+        plt.fill_between(episodes, mean - std, mean + std, alpha=0.2)
+
+    plt.xlabel("Episode", fontsize=12)
+    plt.ylabel("Episodic Return", fontsize=12)
+    plt.title(f"{ENV}: Training Curves (1,000,000 Steps)", fontsize=14)
     plt.legend()
     plt.grid(True)
     plt.tight_layout()
     plt.savefig(outfile, dpi=300, bbox_inches="tight")
     plt.close()
 
-# Buffer size comparison
 buffer_configs = {
-    "Buffer 50k": "baseline_rewards_Hopper-v4_seed{seed}_buf50000_batch64.csv",
-    "Buffer 300k": "baseline_rewards_Hopper-v4_seed{seed}_buf300000_batch256.csv",
-    "Buffer 500k": "baseline_rewards_Hopper-v4_seed{seed}_buf500000_batch256.csv",
+    "Buffer 500k": "data/baseline_rewards_Hopper-v4_seed{seed}_buf500000_batch256.csv"
 }
 
 plot_comparison(
     buffer_configs,
-    "Hopper-v4: Buffer Size Comparison",
-    "hopper_buffer_comparison.png"
+    f"{ENV}: Buffer Size Comparison",
+    "figures/hopper_buffer_comparison_1M.png"
 )
 
-# Batch size comparison
-batch_configs = {
-    "Batch 128": "baseline_rewards_Hopper-v4_seed{seed}_buf500000_batch128.csv",
-    "Batch 256": "baseline_rewards_Hopper-v4_seed{seed}_buf500000_batch256.csv",
-    "Batch 512": "baseline_rewards_Hopper-v4_seed{seed}_buf500000_batch512.csv",
-}
+# Hopper seed variation 
+plt.figure(figsize=(10, 6), dpi=300)
 
-plot_comparison(
-    batch_configs,
-    "Hopper-v4: Batch Size Comparison",
-    "hopper_batch_comparison.png"
-)
+for s in SEEDS:
+    fp = f"data/baseline_rewards_Hopper-v4_seed{s}_buf500000_batch256.csv"
+    if not os.path.exists(fp):
+        continue
+
+    df = pd.read_csv(fp)
+    rewards = df["episode_reward"].values
+    episodes = np.arange(len(rewards))
+
+    plt.plot(episodes, rewards, label=f"Seed {s}")
+
+plt.xlabel("Episode", fontsize=12)
+plt.ylabel("Episodic Return", fontsize=12)
+plt.title("Hopper-v4: Seed Variation (1,000,000 Steps)", fontsize=14)
+plt.legend()
+plt.grid(True)
+plt.tight_layout()
+plt.savefig("figures/hopper_seed_variation_1M.png", dpi=300, bbox_inches="tight")
+plt.close()
+
