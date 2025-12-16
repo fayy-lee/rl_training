@@ -27,25 +27,24 @@ control environments.
 
 ## Repository Structure
 
-rl_training/
-├── checkpoints/ # Saved SAC model checkpoints
-├── data/ # Collected datasets and CSV logs
-├── figures/ # Generated plots (PNG)
-├── antmaze graphs/ # AntMaze-specific plots
-├── rlpd/ # RLPD-related utilities
-├── auto_run.sh # Automated experiment sweep
-├── train_baseline_sac.py # Train SAC from scratch
-├── train_sac.py # SAC training with prefill options
-├── train_with_prior_data.py # Train SAC with pre-collected data
-├── train_rlpd_from_dataset.py # RLPD training from offline datasets
-├── collect_from_checkpoint.py # Collect rollouts from checkpoints
-├── evaluate_sweep.py # Multi-seed evaluation
-├── generate_result_table.py # Mean/std reward tables
-├── plot_results.py # Learning curve and ablation plots
-├── plot_results_ant.py # Ant-specific plots
-├── plot_seed_variance.py # Seed variance visualization
-├── sac_utils.py # SAC agent and replay buffer
-└── README.md
+- checkpoints/ – Saved SAC model checkpoints
+- data/ – Collected datasets and CSV logs
+- figures/ – Generated plots (PNG)
+- antmaze graphs/ – AntMaze-specific plots
+- rlpd/ – RLPD-related utilities
+- auto_run.sh – Automated experiment sweep
+- train_baseline_sac.py – Train SAC from scratch
+- train_sac.py – SAC training with prefill options
+- train_with_prior_data.py – Train SAC with pre-collected data
+- train_rlpd_from_dataset.py – RLPD training from offline datasets
+- collect_from_checkpoint.py – Collect rollouts from checkpoints
+- evaluate_sweep.py – Multi-seed evaluation
+- generate_result_table.py – Mean/std reward tables
+- plot_results.py – Learning curve and ablation plots
+- plot_results_ant.py – Ant-specific plots
+- plot_seed_variance.py – Seed variance visualization
+- sac_utils.py – SAC agent and replay buffer
+- README.md – Project overview and instruction
 
 ---
 
