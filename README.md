@@ -53,7 +53,7 @@ control environments.
 Main Python dependencies:
 
 - torch
-- gymnasium
+- gymnasium (0.21.0 for Antmaze)
 - numpy
 - pandas
 - matplotlib
