@@ -57,6 +57,10 @@ Main Python dependencies:
 - numpy
 - pandas
 - matplotlib
+- d4rl
+- mujoco
+- jax flax optax
+- wandb
 
 Dependencies can be installed manually using pip or conda.
 
