@@ -53,17 +53,17 @@ rl_training/
 │   ├── sac_utils.py                  # SAC agent implementation
 │   └── slurm_scripts/                # Cluster job scripts
 ├── policies/                         # Trained model checkpoints
-│   ├── checkpoint_final_*.pt         # Final trained policies
-│   ├── checkpoint_50000.pt           # Intermediate checkpoints
-│   ├── prior_buffer*.pt              # Pre-collected replay buffers
-│   └── checkpoints_t/                # Timestamped checkpoints
+│   ├── checkpoint_final_*.pt     
+│   ├── checkpoint_50000.pt    
+│   ├── prior_buffer*.pt      
+│   └── checkpoints_t/            
 ├── results/                          # Experimental results
 │   ├── figures/                      # Generated plots (PNG)
-│   ├── csvs/                         # Summary CSV files
-│   ├── 1M/                           # 1M step experiments
-│   └── data_t/                       # Timestamped data
+│   ├── csvs/ 
+│   ├── 1M/   
+│   └── data_t/  
 ├── media/                            # Videos and visualizations
-│   └── videos/                       # Environment rollout videos
+│   └── videos/                       
 │       ├── Ant-v4/
 │       ├── Hopper-v4/
 │       └── Walker2d-v4/
@@ -85,7 +85,7 @@ rl_training/
 ### 1. Clone Repository
 
 ```bash
-git clone <repository-url>
+git clone <https://github.com/fayy-lee/rl_training.git>
 cd rl_training
 ```
 
