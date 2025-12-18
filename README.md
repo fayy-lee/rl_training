@@ -42,6 +42,7 @@ control environments.
 - generate_result_table.py – Mean/std reward tables
 - plot_results.py – Learning curve and ablation plots
 - plot_results_ant.py – Ant-specific plots
+- plot_results_walker.py – Walker-specific plots
 - plot_seed_variance.py – Seed variance visualization
 - sac_utils.py – SAC agent and replay buffer
 - README.md – Project overview and instruction
@@ -171,6 +172,7 @@ nano configs/rlpd_config.py
 - ant_batch_comparison.png
 - ant_seed_variance.png
 - combined_seed_variance.png
+- walker_variant_comparison.png
 
 **CSV Files**
 
