@@ -42,6 +42,7 @@ rl_training/
 │   ├── evaluate_sac.py               # Single checkpoint evaluation
 │   ├── evaluate_sweep.py             # Multi-seed evaluation
 │   ├── evaluate_and_generate_dataset.py  # Dataset generation
+│   ├── generate_video.py             # Generate videos from .pt files
 │   ├── plot_results.py               # Learning curves
 │   ├── plot_results_ant.py           # Ant-specific plots
 │   ├── plot_results_walker.py        # Walker-specific plots
@@ -61,6 +62,7 @@ rl_training/
 │   ├── figures/                      # Generated plots (PNG)
 │   ├── csvs/ 
 │   ├── 1M/   
+│   ├── 2M/   
 │   └── data_t/  
 ├── media/                            # Videos and visualizations
 │   └── videos/                       
