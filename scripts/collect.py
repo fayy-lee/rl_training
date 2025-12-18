@@ -7,7 +7,7 @@ import sys
 
 def main() -> None:
     repo_root = Path(__file__).resolve().parent.parent
-    cmd = [sys.executable, "-m", "collect_from_checkpoint", *sys.argv[1:]]
+    cmd = [sys.executable, "-m", "scripts.collect_from_checkpoint", *sys.argv[1:]]
     subprocess.run(cmd, check=True, cwd=repo_root)
 
 

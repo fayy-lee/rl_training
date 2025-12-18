@@ -132,8 +132,6 @@ def main(_):
         batch = {}
         for k, v in offline_batch.items():
             batch[k] = v
-            if "antmaze" in FLAGS.env_name and k == "rewards":
-                batch[k] -= 1
 
         agent, update_info = agent.update(batch, FLAGS.utd_ratio)
 
@@ -188,9 +186,6 @@ def main(_):
             )
 
             batch = combine(offline_batch, online_batch)
-
-            if "antmaze" in FLAGS.env_name:
-                batch["rewards"] -= 1
 
             agent, update_info = agent.update(batch, FLAGS.utd_ratio)
 

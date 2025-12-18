@@ -28,19 +28,6 @@ XLA_PYTHON_CLIENT_PREALLOCATE=false python train_finetuning.py --env_name=halfch
                 --project_name=rlpd_locomotion
 ```
 
-## D4RL Antmaze
-```bash
-XLA_PYTHON_CLIENT_PREALLOCATE=false python train_finetuning.py --env_name=antmaze-umaze-v2 \
-                --utd_ratio=20 \
-                --start_training 5000 \
-                --max_steps 300000 \
-                --config=configs/rlpd_config.py \
-                --config.backup_entropy=False \
-                --config.hidden_dims="(256, 256, 256)" \
-                --config.num_min_qs=1 \
-                --project_name=rlpd_antmaze
-```
-
 ## Adroit Binary
 
 First, download and unzip `.npy` files into `~/.datasets/awac-data/` from [here](https://drive.google.com/file/d/1SsVaQKZnY5UkuR78WrInp9XxTdKHbF0x/view).
