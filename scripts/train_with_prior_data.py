@@ -3,6 +3,13 @@ import gymnasium as gym
 import pickle
 import torch
 import pandas as pd
+from pathlib import Path
+import sys
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
 from sac_utils import SACAgent, ReplayBuffer
 
 def train(env_name, dataset_file, total_steps, seed=0, batch_size=256, buffer_capacity=500000, device="cpu"):

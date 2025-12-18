@@ -1,0 +1,24 @@
+name: rl-training
+channels:
+  - conda-forge
+dependencies:
+  - python=3.10
+  - pytorch
+  - gymnasium
+  - numpy
+  - pandas
+  - matplotlib
+  - pip
+  - pip:
+      - mujoco
+      - tensorboard
+      - stable-baselines3
+      - ml-collections
+      - absl-py
+      - jax
+      - flax
+      - tensorflow-probability
+      - d4rl
+      - dmcgym
+      - wandb
+      - tqdm
