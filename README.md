@@ -27,43 +27,92 @@ control environments.
 
 ## Repository Structure
 
-- checkpoints/ – Saved SAC model checkpoints
-- data/ – Collected datasets and CSV logs
-- figures/ – Generated plots (PNG)
-- antmaze graphs/ – AntMaze-specific plots
-- rlpd/ – RLPD-related utilities
-- auto_run.sh – Automated experiment sweep
-- train_baseline_sac.py – Train SAC from scratch
-- train_sac.py – SAC training with prefill options
-- train_with_prior_data.py – Train SAC with pre-collected data
-- train_rlpd_from_dataset.py – RLPD training from offline datasets
-- collect_from_checkpoint.py – Collect rollouts from checkpoints
-- evaluate_sweep.py – Multi-seed evaluation
-- generate_result_table.py – Mean/std reward tables
-- plot_results.py – Learning curve and ablation plots
-- plot_results_ant.py – Ant-specific plots
-- plot_results_walker.py – Walker-specific plots
-- plot_seed_variance.py – Seed variance visualization
-- sac_utils.py – SAC agent and replay buffer
-- README.md – Project overview and instruction
+```
+rl_training/
+├── scripts/                          # Training, evaluation, plotting scripts
+│   ├── train.py                      # Wrapper for SAC training
+│   ├── eval.py                       # Wrapper for evaluation
+│   ├── collect.py                    # Wrapper for data collection
+│   ├── plot.py                       # Wrapper for plotting
+│   ├── train_baseline_sac.py         # Train SAC from scratch
+│   ├── train_sac.py                  # SAC with prefill options
+│   ├── train_cartpole.py             # CartPole experiments
+│   ├── train_rlpd_from_dataset.py    # RLPD offline training
+│   ├── collect_from_checkpoint.py    # Collect rollouts from policy
+│   ├── evaluate_sac.py               # Single checkpoint evaluation
+│   ├── evaluate_sweep.py             # Multi-seed evaluation
+│   ├── evaluate_and_generate_dataset.py  # Dataset generation
+│   ├── plot_results.py               # Learning curves
+│   ├── plot_results_ant.py           # Ant-specific plots
+│   ├── plot_results_walker.py        # Walker-specific plots
+│   ├── plot_seed_variance.py         # Seed variance plots
+│   ├── plot_sac_prefill_comparison.py  # Prefill ablations
+│   ├── compare_learning_curves.py    # Cross-environment comparison
+│   ├── compare_sac_ppo.py            # SAC vs PPO comparison
+│   ├── generate_result_table.py      # Summary statistics tables
+│   ├── sac_utils.py                  # SAC agent implementation
+│   └── slurm_scripts/                # Cluster job scripts
+├── policies/                         # Trained model checkpoints
+│   ├── checkpoint_final_*.pt         # Final trained policies
+│   ├── checkpoint_50000.pt           # Intermediate checkpoints
+│   ├── prior_buffer*.pt              # Pre-collected replay buffers
+│   └── checkpoints_t/                # Timestamped checkpoints
+├── results/                          # Experimental results
+│   ├── figures/                      # Generated plots (PNG)
+│   ├── csvs/                         # Summary CSV files
+│   ├── 1M/                           # 1M step experiments
+│   └── data_t/                       # Timestamped data
+├── media/                            # Videos and visualizations
+│   └── videos/                       # Environment rollout videos
+│       ├── Ant-v4/
+│       ├── Hopper-v4/
+│       └── Walker2d-v4/
+├── rlpd/                             # RLPD implementation (offline RL)
+│   ├── train_finetuning.py           # RLPD training script
+│   ├── configs/                      # RLPD hyperparameter configs
+│   ├── rlpd/                         # RLPD agent implementation
+│   └── README.md                     # RLPD-specific instructions
+├── docs/                             # Documentation
+│   └── README.md                     # Additional documentation
+├── environment.yml                   # Conda environment specification
+└── README.md                         # This file
+```
 
 ---
 
-## Dependencies
+## Installation
 
-Main Python dependencies:
+### 1. Clone Repository
+
+```bash
+git clone <repository-url>
+cd rl_training
+```
+
+### 2. Create Environment
+
+```bash
+conda env create -f environment.yml
+conda activate rl-training
+```
+
+### Dependencies
+
+Main Python dependencies (specified in environment.yml):
 
 - torch
-- gymnasium (0.21.0 for Antmaze)
+- gymnasium
 - numpy
 - pandas
 - matplotlib
-- d4rl
 - mujoco
-- jax flax optax
-- wandb
-
-Dependencies can be installed manually using pip or conda.
+- tensorboard
+- stable-baselines3
+- ml-collections
+- jax, flax
+- tensorflow-probability
+- d4rl, dmcgym (for RLPD offline datasets)
+- wandb, tqdm
 
 ---
 
@@ -72,7 +121,7 @@ Dependencies can be installed manually using pip or conda.
 ### 1. Train SAC from Scratch
 
 ```bash
-python train_baseline_sac.py \
+python scripts/train_baseline_sac.py \
   --env Hopper-v4 \
   --total_steps 200000 \
   --seed 0 \
@@ -80,25 +129,31 @@ python train_baseline_sac.py \
   --batch_size 256
 ```
 
-**2. Collect Rollouts from a Checkpoint**
+Or use the wrapper:
 
 ```bash
-python collect_from_checkpoint.py \
+python scripts/train.py --env Hopper-v4 --seed 0
+```
+
+### 2. Collect Rollouts from a Checkpoint
+
+```bash
+python scripts/collect_from_checkpoint.py \
   --env Hopper-v4 \
-  --ckpt checkpoints/checkpoint_50000.pt \
-  --out data/dataset_from_ckpt_50k_seed0.pkl \
+  --ckpt policies/checkpoint_50000.pt \
+  --out results/dataset_from_ckpt_50k_seed0.pkl \
   --rollout_steps 50000 \
   --seed 0
 ```
 
 ---
 
-**3. Train SAC with Pre-collected Data**
+### 3. Train SAC with Pre-collected Data
 
 ```bash
-python train_with_prior_data.py \
+python scripts/train_with_prior_data.py \
   --env Hopper-v4 \
-  --dataset data/dataset_from_ckpt_50k_seed0.pkl \
+  --dataset results/dataset_from_ckpt_50k_seed0.pkl \
   --total_steps 200000 \
   --buffer_size 500000 \
   --batch_size 256 \
@@ -107,63 +162,63 @@ python train_with_prior_data.py \
 
 ---
 
-**4. Evaluate Multiple Checkpoints**
+### 4. Evaluate Multiple Checkpoints
 
 ```bash
-python evaluate_sweep.py
+cd /path/to/rl_training
+python scripts/evaluate_sweep.py
+```
+
+Or use the wrapper:
+
+```bash
+python scripts/eval.py --checkpoint policies/checkpoint_final_Hopper-v4_seed0_buf500000_batch256.pt --env Hopper-v4
 ```
 
 This generates:
 
-- evaluation_results.csv
+- results/evaluation_results.csv
 - Mean and standard deviation of episodic rewards across seeds
 
 ---
 
-**5. Generate Plots**
+### 5. Generate Plots
 
 ```bash
-python plot_results.py
-python plot_seed_variance.py
+python scripts/plot_results.py
+python scripts/plot_seed_variance.py
+```
+
+Or use the wrapper:
+
+```bash
+python scripts/plot.py
 ```
 
 ---
 
-**6. Install and Run Antmaze**
+### 6. RLPD Training (Offline RL)
 
-conda create -n rlpd python=3.9 # If you use conda.
+For RLPD-specific experiments with D4RL datasets:
 
-conda activate rlpd
+```bash
+cd rlpd
+XLA_PYTHON_CLIENT_PREALLOCATE=false python train_finetuning.py \
+  --env_name=halfcheetah-expert-v0 \
+  --utd_ratio=20 \
+  --start_training 5000 \
+  --max_steps 250000 \
+  --config=configs/rlpd_config.py \
+  --project_name=rlpd_locomotion
+```
 
-conda install patchelf # If you use conda.
+See [rlpd/README.md](rlpd/README.md) for detailed RLPD instructions.
 
-pip install -r requirements.txt
-
-conda deactivate
-
-conda activate rlpd
-
-XLA_PYTHON_CLIENT_PREALLOCATE=false python train_finetuning.py --env_name=antmaze-umaze-v2 \
- --utd_ratio=20 \
- --start_training 5000 \
- --max_steps 300000 \
- --config=configs/rlpd_config.py \
- --config.backup_entropy=False \
- --config.hidden_dims="(256, 256, 256)" \
- --config.num_min_qs=1 \
- --project_name=rlpd_antmaze
-
-**Edit Configs:**
-
-nano configs/rlpd_config.py
-
-- Design Choice 1: Offline ratio = 0.5
-- Design Choice 2: Layer norm = true
-- Design Choice 3: backup entropy = true
+---
 
 ## Outputs
 
-**Plots (figures/)**
+**Plots (results/figures/)**
 
 - hopper_buffer_comparison.png
 - hopper_batch_comparison.png
@@ -174,27 +229,42 @@ nano configs/rlpd_config.py
 - combined_seed_variance.png
 - walker_variant_comparison.png
 
-**CSV Files**
+**CSV Files (results/)**
 
-- baseline*rewards*\*.csv
+- baseline_rewards_*.csv
 - evaluation_results.csv
 - evaluation_table.csv
 
-**Model Checkpoints**
+**Model Checkpoints (policies/)**
 
-- checkpoint*final*\*.pt
+- checkpoint_final_*.pt
+- checkpoint_50000.pt, checkpoint_100000.pt
+- prior_buffer.pt, temp_*.pt
 
-## Reproducibility Notes
+## Reproducibility Checklist
 
+| Component | Location |
+|-----------|----------|
+| Training scripts | [scripts/](scripts/) |
+| Trained models | [policies/](policies/) |
+| Results & metrics | [results/](results/) |
+| Plots & figures | [results/figures/](results/figures/) |
+| Videos | [media/videos/](media/videos/) |
+| Environment spec | [environment.yml](environment.yml) |
+| RLPD configs | [rlpd/configs/](rlpd/configs/) |
+| Instructions | This README |
+
+**Notes:**
 - All experiments are fully seed-controlled
 - Hyperparameters are configurable via command-line arguments
-- Results can be regenerated end-to-end using auto_run.sh
+- Results can be regenerated end-to-end
+- RLPD has separate configurations in rlpd/configs/
 
 ## Limitations
 
 - Computational constraints limited seed count for Ant-v5
-- AntMaze and Walker2D results are placeholders
 - Offline data quality depends on checkpoint quality
+- RLPD features require additional setup (see rlpd/README.md)
 
 ## References
 
