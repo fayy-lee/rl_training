@@ -85,6 +85,7 @@ python collect_from_checkpoint.py \
   --rollout_steps 50000 \
   --seed 0
 ```
+
 ---
 
 **3. Train SAC with Pre-collected Data**
@@ -98,6 +99,7 @@ python train_with_prior_data.py \
   --batch_size 256 \
   --seed 0
 ```
+
 ---
 
 **4. Evaluate Multiple Checkpoints**
@@ -105,21 +107,59 @@ python train_with_prior_data.py \
 ```bash
 python evaluate_sweep.py
 ```
+
 This generates:
+
 - evaluation_results.csv
 - Mean and standard deviation of episodic rewards across seeds
+
 ---
 
 **5. Generate Plots**
+
 ```bash
 python plot_results.py
 python plot_seed_variance.py
 ```
+
 ---
+
+**6. Install and Run Antmaze**
+
+conda create -n rlpd python=3.9 # If you use conda.
+
+conda activate rlpd
+
+conda install patchelf # If you use conda.
+
+pip install -r requirements.txt
+
+conda deactivate
+
+conda activate rlpd
+
+XLA_PYTHON_CLIENT_PREALLOCATE=false python train_finetuning.py --env_name=antmaze-umaze-v2 \
+ --utd_ratio=20 \
+ --start_training 5000 \
+ --max_steps 300000 \
+ --config=configs/rlpd_config.py \
+ --config.backup_entropy=False \
+ --config.hidden_dims="(256, 256, 256)" \
+ --config.num_min_qs=1 \
+ --project_name=rlpd_antmaze
+
+**Edit Configs:**
+
+nano configs/rlpd_config.py
+
+- Design Choice 1: Offline ratio = 0.5
+- Design Choice 2: Layer norm = true
+- Design Choice 3: backup entropy = true
 
 ## Outputs
 
 **Plots (figures/)**
+
 - hopper_buffer_comparison.png
 - hopper_batch_comparison.png
 - hopper_seed_variance.png
@@ -129,24 +169,29 @@ python plot_seed_variance.py
 - combined_seed_variance.png
 
 **CSV Files**
-- baseline_rewards_*.csv
+
+- baseline*rewards*\*.csv
 - evaluation_results.csv
 - evaluation_table.csv
 
 **Model Checkpoints**
-- checkpoint_final_*.pt
+
+- checkpoint*final*\*.pt
 
 ## Reproducibility Notes
+
 - All experiments are fully seed-controlled
 - Hyperparameters are configurable via command-line arguments
 - Results can be regenerated end-to-end using auto_run.sh
 
 ## Limitations
+
 - Computational constraints limited seed count for Ant-v5
 - AntMaze and Walker2D results are placeholders
 - Offline data quality depends on checkpoint quality
 
 ## References
+
 - Ball et al. (2023). Efficient Online Reinforcement Learning with Offline Data
-https://arxiv.org/abs/2302.02948
+  https://arxiv.org/abs/2302.02948
 - RLPD GitHub: https://github.com/ikostrikov/rlpd
