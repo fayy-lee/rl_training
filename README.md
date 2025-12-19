@@ -20,8 +20,8 @@ control environments.
 
 - **Hopper-v4**: Fast and stable single-legged hopping task
 - **Ant-v5**: High-dimensional quadruped locomotion task
-- **Walker2D**: Two-legged walking agent (placeholder)
-- **AntMaze**: Navigation task requiring exploration and planning (placeholder)
+- **Walker2D**: Two-legged walking agent 
+- **AntMaze**: Navigation task requiring exploration and planning
 
 ---
 
